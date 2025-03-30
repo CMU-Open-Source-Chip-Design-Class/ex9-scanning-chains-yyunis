@@ -7,7 +7,7 @@ from cocotb.triggers import Timer
 # to the filepath of the .log
 # file you are working with
 CHAIN_LENGTH = -1
-FILE_NAME    = ""
+FILE_NAME    = "adder/adder.log"
 
 
 
@@ -84,6 +84,8 @@ def setup_chain(filename):
         cur_reg.last  = new_list[-1]
         scan_chain.chain_length += len(cur_reg.index_list)
 
+    CHAIN_LENGTH = scan_chain.chain_length
+
     return scan_chain
 
 
@@ -134,12 +136,9 @@ async def step_clock(dut):
 #       the specified FF?
         
 async def input_chain_single(dut, bit, ff_index):
-
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
-
-    pass
+    dut.scan_in.value = bit
+    for i in range(ff_index + 1):
+        await step_clock(dut)
     
 #-------------------------------------------------------------------
 
@@ -149,14 +148,11 @@ async def input_chain_single(dut, bit, ff_index):
         
 # Hint: How many clocks would it take for value to reach
 #       the specified FF?
-        
+
 async def input_chain(dut, bit_list, ff_index):
-
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
-
-    pass
+    for i in range(len(bit_list) - 1, 0, -1):
+        await input_chain_single(dut, bit_list[i], 0)
+    await input_chain_single(dut, bit_list[0], ff_index)
 
 #-----------------------------------------------
 
@@ -164,12 +160,9 @@ async def input_chain(dut, bit_list, ff_index):
 # chain at specified index 
         
 async def output_chain_single(dut, ff_index):
-
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
-
-    pass       
+    for i in range(CHAIN_LENGTH - ff_index):
+        await step_clock(dut)
+    return dut.scan_out.value
 
 #-----------------------------------------------
 
@@ -179,12 +172,11 @@ async def output_chain_single(dut, ff_index):
 #   for Part H of Task 1
         
 async def output_chain(dut, ff_index, output_length):
-
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
-
-    pass       
+    res = []
+    res.append(await output_chain_single(dut, ff_index + output_length - 1))
+    for i in range(output_length - 1):
+        res.append(await output_chain_single(dut, CHAIN_LENGTH - 1))
+    return res[::-1]
 
 #-----------------------------------------------
 
@@ -199,8 +191,9 @@ async def test(dut):
 
     # Setup the scan chain object
     chain = setup_chain(FILE_NAME)
-
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
-
+    dut.scan_en.value = 1
+    await input_chain(dut, [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0], 0)
+    dut.scan_en.value = 0
+    await step_clock(dut)
+    dut.scan_en.value = 1
+    print(await output_chain(dut, 0, 13))

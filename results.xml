@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1743360574" />
+    <testcase name="test" classname="ScanChain_starter" file="/Users/eunicelee/Desktop/CMU/18224/ex9-scanning-chains-yyunis/ScanChain_starter.py" lineno="185" time="0.001985788345336914" sim_time_ns="520.001" ratio_time="261861.24076167605" />
+  </testsuite>
+</testsuites>
