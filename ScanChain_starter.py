@@ -84,8 +84,6 @@ def setup_chain(filename):
         cur_reg.last  = new_list[-1]
         scan_chain.chain_length += len(cur_reg.index_list)
 
-    CHAIN_LENGTH = scan_chain.chain_length
-
     return scan_chain
 
 
@@ -173,7 +171,7 @@ async def output_chain_single(dut, ff_index):
         
 async def output_chain(dut, ff_index, output_length):
     res = []
-    res.append(await output_chain_single(dut, ff_index + output_length - 1))
+    res.append(await output_chain_single(dut, ff_index + output_length))
     for i in range(output_length - 1):
         res.append(await output_chain_single(dut, CHAIN_LENGTH - 1))
     return res[::-1]
@@ -191,9 +189,29 @@ async def test(dut):
 
     # Setup the scan chain object
     chain = setup_chain(FILE_NAME)
+    CHAIN_LENGTH = chain.chain_length
     dut.scan_en.value = 1
     await input_chain(dut, [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0], 0)
     dut.scan_en.value = 0
     await step_clock(dut)
     dut.scan_en.value = 1
-    print(await output_chain(dut, 0, 13))
+    res = await output_chain(dut, 0, 5)
+    assert res == [0, 0, 1, 0, 1]
+    print("test 15 + 5 passed")
+
+    await input_chain(dut, [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1], 0)
+    dut.scan_en.value = 0
+    await step_clock(dut)
+    dut.scan_en.value = 1
+    res = await output_chain(dut, 0, 5)
+    assert res == [0, 1, 1, 1, 1]
+    print("test 15 + 15 passed")
+
+    await input_chain(dut, [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0], 0)
+    dut.scan_en.value = 0
+    await step_clock(dut)
+    dut.scan_en.value = 1
+    res = await output_chain(dut, 0, 5)
+    assert res == [1, 0, 1, 0, 1]
+    print("test 7 + 14 passed")
+
