@@ -121,6 +121,7 @@ def print_chain(chain):
     
 # Hint: Use the Timer() builtin function
 async def step_clock(dut):
+    # Consulted ChatGPT about basics of CocoTB for a reminder of value assignments
     dut.clk.value = 1
     await Timer(10, units='ns')
     dut.clk.value = 0
